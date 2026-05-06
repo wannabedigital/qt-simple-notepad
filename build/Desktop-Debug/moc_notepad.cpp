@@ -7,6 +7,7 @@
 *****************************************************************************/
 
 #include "../../notepad.h"
+#include <QtGui/qtextcursor.h>
 #include <QtCore/qmetatype.h>
 
 #include <QtCore/qtmochelpers.h>
@@ -55,7 +56,9 @@ template <> constexpr inline auto Notepad::qt_create_metaobjectdata<qt_meta_tag_
         "on_actionLeft_triggered",
         "on_actionCenter_triggered",
         "on_actionRight_triggered",
-        "on_actionQuit_triggered"
+        "on_actionQuit_triggered",
+        "on_actionCascade_triggered",
+        "on_actionTile_triggered"
     };
 
     QtMocHelpers::UintData qt_methods {
@@ -91,6 +94,10 @@ template <> constexpr inline auto Notepad::qt_create_metaobjectdata<qt_meta_tag_
         QtMocHelpers::SlotData<void()>(16, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'on_actionQuit_triggered'
         QtMocHelpers::SlotData<void()>(17, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'on_actionCascade_triggered'
+        QtMocHelpers::SlotData<void()>(18, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'on_actionTile_triggered'
+        QtMocHelpers::SlotData<void()>(19, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -130,6 +137,8 @@ void Notepad::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, voi
         case 13: _t->on_actionCenter_triggered(); break;
         case 14: _t->on_actionRight_triggered(); break;
         case 15: _t->on_actionQuit_triggered(); break;
+        case 16: _t->on_actionCascade_triggered(); break;
+        case 17: _t->on_actionTile_triggered(); break;
         default: ;
         }
     }
@@ -155,14 +164,14 @@ int Notepad::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 16)
+        if (_id < 18)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 16;
+        _id -= 18;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 16)
+        if (_id < 18)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 16;
+        _id -= 18;
     }
     return _id;
 }

@@ -20,20 +20,47 @@ Notepad::~Notepad()
     delete ui;
 }
 
-bool Notepad::maybeSave()
+QTextEdit* Notepad::setupNewSubWindow(QString title) {
+    QTextEdit *edit = new QTextEdit();
+
+    QMdiSubWindow *subWindow = ui->mdiArea->addSubWindow(edit);
+    subWindow->setWindowTitle(title);
+    subWindow->setAttribute(Qt::WA_DeleteOnClose);
+    subWindow->show();
+
+    return edit;
+}
+
+QTextEdit* Notepad::activeTextEdit() {
+    if (QMdiSubWindow *activeSubWindow = ui->mdiArea->activeSubWindow()) {
+        return qobject_cast<QTextEdit*>(activeSubWindow->widget());
+    }
+    return nullptr;
+}
+
+bool Notepad::maybeSave(QTextEdit *edit)
 {
-    if (!ui->textEdit->document()->isModified()) {
+    if (!edit || !edit->document()->isModified()) {
         return true;
     }
 
+    QString fileName = edit->property("filePath").toString();
+    QString displayName = fileName.isEmpty() ? "Новый документ" : fileName;
+
     QMessageBox::StandardButton ret;
     ret = QMessageBox::warning(this, "Notepad",
-                               "Текущий файл содержит несохраненные изменения.\nСохранить их?",
+                               QString("Файл '%1' содержит несохраненные изменения.\nСохранить их?").arg(displayName),
                                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Save) {
+        for (QMdiSubWindow *sub : ui->mdiArea->subWindowList()) {
+            if (sub->widget() == edit) {
+                ui->mdiArea->setActiveSubWindow(sub);
+                break;
+            }
+        }
         on_actionSave_triggered();
-        return !ui->textEdit->document()->isModified();
+        return !edit->document()->isModified();
     } else if (ret == QMessageBox::Cancel) {
         return false;
     }
@@ -42,79 +69,71 @@ bool Notepad::maybeSave()
 
 void Notepad::closeEvent(QCloseEvent *event)
 {
-    if (maybeSave()) {
-        event->accept();
-    } else {
-        event->ignore();
+    for (QMdiSubWindow *subWindow : ui->mdiArea->subWindowList()) {
+        QTextEdit *edit = qobject_cast<QTextEdit*>(subWindow->widget());
+
+        if (!maybeSave(edit)) {
+            event->ignore();
+            return;
+        }
     }
+
+    event->accept();
 }
 
 void Notepad::on_actionNew_triggered()
 {
-    if (!maybeSave()) return;
-
-    currentFile.clear();
-    ui->textEdit->setText(QString());
-
-    ui->textEdit->document()->setModified(false);
+    setupNewSubWindow("Новый документ");
 }
 
 
 void Notepad::on_actionOpen_triggered()
 {
-    if (!maybeSave()) return;
-
     QString fileName = QFileDialog::getOpenFileName(this, "Открыть файл");
     if (fileName.isEmpty()) return;
 
     QFile file(fileName);
-    currentFile = fileName;
+    if (file.open(QIODevice::ReadOnly | QFile::Text)) {
+        QTextEdit *edit = setupNewSubWindow(fileName);
 
-    if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Ошибка", "Невозможно открыть файл: " + file.errorString());
-        return;
+        edit->setProperty("filePath", fileName);
+
+        edit->setText(QTextStream(&file).readAll());
+        file.close();
+        edit->document()->setModified(false);
     }
-
-    setWindowTitle(fileName);
-    QTextStream in(&file);
-    QString text = in.readAll();
-    ui->textEdit->setText(text);
-    file.close();
-
-    ui->textEdit->document()->setModified(false);
 }
 
 
 void Notepad::on_actionSave_triggered()
 {
-    QString fileName;
-    if (currentFile.isEmpty()) {
-        fileName = QFileDialog::getSaveFileName(this, "Сохранить файл");
-        currentFile = fileName;
-    } else {
-        fileName = currentFile;
-    }
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
 
-    if (fileName.isEmpty()) return;
+    QString fileName = edit->property("filePath").toString();
+
+    if (fileName.isEmpty()) {
+        fileName = QFileDialog::getSaveFileName(this, "Сохранить файл");
+        if (fileName.isEmpty()) return;
+        edit->setProperty("filePath", fileName);
+        ui->mdiArea->activeSubWindow()->setWindowTitle(fileName);
+    }
 
     QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Ошибка", "Невозможно сохранить файл: " + file.errorString());
-        return;
+    if (file.open(QIODevice::WriteOnly | QFile::Text)) {
+        QTextStream out(&file);
+        out << edit->toPlainText();
+        file.close();
+        edit->document()->setModified(false);
     }
-
-    setWindowTitle(fileName);
-    QTextStream out(&file);
-    QString text = ui->textEdit->toPlainText();
-    out << text;
-    file.close();
-
-    ui->textEdit->document()->setModified(false);
 }
 
 
 void Notepad::on_actionSaveAs_triggered()
 {
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
+
     QString fileName = QFileDialog::getSaveFileName(this, "Сохранить как...");
     if (fileName.isEmpty()) return;
 
@@ -124,20 +143,25 @@ void Notepad::on_actionSaveAs_triggered()
         return;
     }
 
-    currentFile = fileName;
-    setWindowTitle(fileName);
+    edit->setProperty("filePath", fileName);
+
+    ui->mdiArea->activeSubWindow()->setWindowTitle(fileName);
+
     QTextStream out(&file);
-    QString text = ui->textEdit->toPlainText();
+    QString text = edit->toPlainText();
     out << text;
     file.close();
 
-    ui->textEdit->document()->setModified(false);
+    edit->document()->setModified(false);
 }
 
 
 void Notepad::on_actionQuit_triggered()
 {
-    if (maybeSave()) {
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
+
+    if (maybeSave(edit)) {
         QApplication::quit();
     }
 }
@@ -145,41 +169,54 @@ void Notepad::on_actionQuit_triggered()
 
 void Notepad::on_actionCancel_triggered()
 {
-    ui->textEdit->undo();
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
+    edit->undo();
 }
 
 
 void Notepad::on_actionRepeat_triggered()
 {
-    ui->textEdit->redo();
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
+    edit->redo();
 }
 
 
 void Notepad::on_actionCopy_triggered()
 {
-    ui->textEdit->copy();
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
+    edit->copy();
 }
 
 
 void Notepad::on_actionCut_triggered()
 {
-    ui->textEdit->cut();
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
+    edit->cut();
 }
 
 
 void Notepad::on_actionPaste_triggered()
 {
-    ui->textEdit->paste();
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
+    edit->paste();
 }
 
 
 void Notepad::on_actionFind_triggered()
 {
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
+
     bool ok;
     QString text = QInputDialog::getText(this, "Поиск", "Что найти:", QLineEdit::Normal, "", &ok);
 
     if (ok && !text.isEmpty()) {
-        if (!ui->textEdit->find(text)) {
+        if (!edit->find(text)) {
             QMessageBox::information(this, "Поиск", "Текст не найден.");
         }
     }
@@ -188,46 +225,70 @@ void Notepad::on_actionFind_triggered()
 
 void Notepad::on_actionGoToLine_triggered()
 {
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
+
     bool ok;
-    int lineCount = ui->textEdit->document()->blockCount();
+    int lineCount = edit->document()->blockCount();
 
     int lineNumber = QInputDialog::getInt(this, "Перейти к строке", "Номер строки:", 1, 1, lineCount, 1, &ok);
 
     if (ok) {
-        QTextBlock block = ui->textEdit->document()->findBlockByNumber(lineNumber - 1);
+        QTextBlock block = edit->document()->findBlockByNumber(lineNumber - 1);
 
         QTextCursor cursor(block);
-        ui->textEdit->setTextCursor(cursor);
+        edit->setTextCursor(cursor);
     }
 }
 
 
 void Notepad::on_actionFont_triggered()
 {
-    bool ok;
-    QFont font = QFontDialog::getFont(&ok, ui->textEdit->font(), this);
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
 
+    bool ok;
+    QFont font = QFontDialog::getFont(&ok, edit->font(), this);
     if (ok) {
-        ui->textEdit->setFont(font);
+        edit->setFont(font);
     }
 }
 
 
 void Notepad::on_actionLeft_triggered()
 {
-    ui->textEdit->setAlignment(Qt::AlignLeft);
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
+    edit->setAlignment(Qt::AlignLeft);
+
 }
 
 
 void Notepad::on_actionCenter_triggered()
 {
-    ui->textEdit->setAlignment(Qt::AlignCenter);
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
+    edit->setAlignment(Qt::AlignCenter);
 }
 
 
 void Notepad::on_actionRight_triggered()
 {
-    ui->textEdit->setAlignment(Qt::AlignRight);
+    QTextEdit *edit = activeTextEdit();
+    if (!edit) return;
+    edit->setAlignment(Qt::AlignRight);
 }
 
+
+
+void Notepad::on_actionCascade_triggered()
+{
+    ui->mdiArea->cascadeSubWindows();
+}
+
+
+void Notepad::on_actionTile_triggered()
+{
+    ui->mdiArea->tileSubWindows();
+}
 

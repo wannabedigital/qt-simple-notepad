@@ -37,7 +37,7 @@
      <widget class="QWidget" name="widget" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QTextEdit" name="textEdit"/>
+        <widget class="QMdiArea" name="mdiArea"/>
        </item>
       </layout>
      </widget>
@@ -85,8 +85,16 @@
      <addaction name="actionCenter"/>
      <addaction name="actionRight"/>
     </widget>
+    <widget class="QMenu" name="menuWindow">
+     <property name="title">
+      <string>Окно</string>
+     </property>
+     <addaction name="actionCascade"/>
+     <addaction name="actionTile"/>
+    </widget>
     <addaction name="actionFont"/>
     <addaction name="menuAlign"/>
+    <addaction name="menuWindow"/>
    </widget>
    <widget class="QMenu" name="menuFind">
     <property name="title">
@@ -238,6 +246,26 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionC">
+   <property name="text">
+    <string>Каскадом</string>
+   </property>
+  </action>
+  <action name="actionT">
+   <property name="text">
+    <string>Плиткой</string>
+   </property>
+  </action>
+  <action name="actionCascade">
+   <property name="text">
+    <string>Каскадом</string>
+   </property>
+  </action>
+  <action name="actionTile">
+   <property name="text">
+    <string>Плиткой</string>
    </property>
   </action>
  </widget>

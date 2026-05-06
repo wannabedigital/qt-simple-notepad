@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 #include <QCloseEvent>
+#include <QMdiArea>
+#include <QMdiSubWindow>
+#include <QTextEdit>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -54,10 +57,15 @@ private slots:
 
     void on_actionQuit_triggered();
 
+    void on_actionCascade_triggered();
+
+    void on_actionTile_triggered();
+
 private:
     Ui::Notepad *ui;
-    QString currentFile;
+    QTextEdit* setupNewSubWindow(QString title);
+    QTextEdit* activeTextEdit();
 
-    bool maybeSave();
+    bool maybeSave(QTextEdit *edit);
 };
 #endif // NOTEPAD_H

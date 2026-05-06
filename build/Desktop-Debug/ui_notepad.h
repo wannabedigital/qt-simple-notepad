@@ -15,10 +15,10 @@
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMdiArea>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QStatusBar>
-#include <QtWidgets/QTextEdit>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QWidget>
 
@@ -44,16 +44,21 @@ public:
     QAction *actionCut;
     QAction *actionRepeat;
     QAction *actionQuit;
+    QAction *actionC;
+    QAction *actionT;
+    QAction *actionCascade;
+    QAction *actionTile;
     QWidget *centralwidget;
     QGridLayout *gridLayout;
     QWidget *widget;
     QHBoxLayout *horizontalLayout;
-    QTextEdit *textEdit;
+    QMdiArea *mdiArea;
     QMenuBar *menubar;
     QMenu *menuFile;
     QMenu *menuEdit;
     QMenu *menuView;
     QMenu *menuAlign;
+    QMenu *menuWindow;
     QMenu *menuFind;
     QMenu *menuHelp;
     QStatusBar *statusbar;
@@ -105,6 +110,14 @@ public:
         actionRepeat->setObjectName("actionRepeat");
         actionQuit = new QAction(Notepad);
         actionQuit->setObjectName("actionQuit");
+        actionC = new QAction(Notepad);
+        actionC->setObjectName("actionC");
+        actionT = new QAction(Notepad);
+        actionT->setObjectName("actionT");
+        actionCascade = new QAction(Notepad);
+        actionCascade->setObjectName("actionCascade");
+        actionTile = new QAction(Notepad);
+        actionTile->setObjectName("actionTile");
         centralwidget = new QWidget(Notepad);
         centralwidget->setObjectName("centralwidget");
         gridLayout = new QGridLayout(centralwidget);
@@ -113,10 +126,10 @@ public:
         widget->setObjectName("widget");
         horizontalLayout = new QHBoxLayout(widget);
         horizontalLayout->setObjectName("horizontalLayout");
-        textEdit = new QTextEdit(widget);
-        textEdit->setObjectName("textEdit");
+        mdiArea = new QMdiArea(widget);
+        mdiArea->setObjectName("mdiArea");
 
-        horizontalLayout->addWidget(textEdit);
+        horizontalLayout->addWidget(mdiArea);
 
 
         gridLayout->addWidget(widget, 0, 0, 1, 1);
@@ -133,6 +146,8 @@ public:
         menuView->setObjectName("menuView");
         menuAlign = new QMenu(menuView);
         menuAlign->setObjectName("menuAlign");
+        menuWindow = new QMenu(menuView);
+        menuWindow->setObjectName("menuWindow");
         menuFind = new QMenu(menubar);
         menuFind->setObjectName("menuFind");
         menuHelp = new QMenu(menubar);
@@ -162,9 +177,12 @@ public:
         menuEdit->addAction(actionCut);
         menuView->addAction(actionFont);
         menuView->addAction(menuAlign->menuAction());
+        menuView->addAction(menuWindow->menuAction());
         menuAlign->addAction(actionLeft);
         menuAlign->addAction(actionCenter);
         menuAlign->addAction(actionRight);
+        menuWindow->addAction(actionCascade);
+        menuWindow->addAction(actionTile);
         menuFind->addAction(actionFind);
         menuFind->addAction(actionGoToLine);
         menuHelp->addAction(actionHelp);
@@ -230,10 +248,15 @@ public:
 #if QT_CONFIG(shortcut)
         actionQuit->setShortcut(QCoreApplication::translate("Notepad", "Ctrl+W", nullptr));
 #endif // QT_CONFIG(shortcut)
+        actionC->setText(QCoreApplication::translate("Notepad", "\320\232\320\260\321\201\320\272\320\260\320\264\320\276\320\274", nullptr));
+        actionT->setText(QCoreApplication::translate("Notepad", "\320\237\320\273\320\270\321\202\320\272\320\276\320\271", nullptr));
+        actionCascade->setText(QCoreApplication::translate("Notepad", "\320\232\320\260\321\201\320\272\320\260\320\264\320\276\320\274", nullptr));
+        actionTile->setText(QCoreApplication::translate("Notepad", "\320\237\320\273\320\270\321\202\320\272\320\276\320\271", nullptr));
         menuFile->setTitle(QCoreApplication::translate("Notepad", "\320\244\320\260\320\271\320\273", nullptr));
         menuEdit->setTitle(QCoreApplication::translate("Notepad", "\320\237\321\200\320\260\320\262\320\272\320\260", nullptr));
         menuView->setTitle(QCoreApplication::translate("Notepad", "\320\222\320\270\320\264", nullptr));
         menuAlign->setTitle(QCoreApplication::translate("Notepad", "\320\222\321\213\321\200\320\276\320\262\320\275\321\217\321\202\321\214", nullptr));
+        menuWindow->setTitle(QCoreApplication::translate("Notepad", "\320\236\320\272\320\275\320\276", nullptr));
         menuFind->setTitle(QCoreApplication::translate("Notepad", "\320\235\320\260\320\271\321\202\320\270", nullptr));
         menuHelp->setTitle(QCoreApplication::translate("Notepad", "\320\241\320\277\321\200\320\260\320\262\320\272\320\260", nullptr));
         toolBar->setWindowTitle(QCoreApplication::translate("Notepad", "toolBar", nullptr));
