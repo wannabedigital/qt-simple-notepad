@@ -1,0 +1,9 @@
+# Удаляем папку build рекурсивно (-r)
+git rm -r --cached build/
+
+# Удаляем скрытую папку настроек Qt Creator
+git rm -r --cached .qtcreator/
+
+# Удаляем файлы настроек юзера и кэш
+git rm --cached *.pro.user
+git rm --cached .qmake.stash
