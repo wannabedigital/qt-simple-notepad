@@ -2,6 +2,7 @@
 #define NOTEPAD_H
 
 #include <QMainWindow>
+#include <QCloseEvent>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -17,7 +18,46 @@ public:
     Notepad(QWidget *parent = nullptr);
     ~Notepad();
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
+private slots:
+    void on_actionNew_triggered();
+
+    void on_actionOpen_triggered();
+
+    void on_actionSave_triggered();
+
+    void on_actionSaveAs_triggered();
+
+    void on_actionCancel_triggered();
+
+    void on_actionRepeat_triggered();
+
+    void on_actionCopy_triggered();
+
+    void on_actionCut_triggered();
+
+    void on_actionPaste_triggered();
+
+    void on_actionFind_triggered();
+
+    void on_actionGoToLine_triggered();
+
+    void on_actionFont_triggered();
+
+    void on_actionLeft_triggered();
+
+    void on_actionCenter_triggered();
+
+    void on_actionRight_triggered();
+
+    void on_actionQuit_triggered();
+
 private:
     Ui::Notepad *ui;
+    QString currentFile;
+
+    bool maybeSave();
 };
 #endif // NOTEPAD_H
