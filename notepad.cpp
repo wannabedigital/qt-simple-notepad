@@ -52,8 +52,9 @@ bool Notepad::maybeSave(QTextEdit *edit)
                                QString("Файл '%1' содержит несохраненные изменения.\nСохранить их?").arg(displayName),
                                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
 
+    QList subWindowList = ui->mdiArea->subWindowList();
     if (ret == QMessageBox::Save) {
-        for (QMdiSubWindow *sub : ui->mdiArea->subWindowList()) {
+        for (QMdiSubWindow *sub : std::as_const(subWindowList)) {
             if (sub->widget() == edit) {
                 ui->mdiArea->setActiveSubWindow(sub);
                 break;
@@ -69,7 +70,8 @@ bool Notepad::maybeSave(QTextEdit *edit)
 
 void Notepad::closeEvent(QCloseEvent *event)
 {
-    for (QMdiSubWindow *subWindow : ui->mdiArea->subWindowList()) {
+    QList subWindowList = ui->mdiArea->subWindowList();
+    for (QMdiSubWindow *subWindow : std::as_const(subWindowList)) {
         QTextEdit *edit = qobject_cast<QTextEdit*>(subWindow->widget());
 
         if (!maybeSave(edit)) {
